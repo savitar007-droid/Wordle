@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Over | Wordle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .icon {
+            width: 60px;
+            height: 60px;
+            background: #787c7e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #121212;
+        }
+
+        .word-reveal {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .word-display {
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            color: #6aaa64;
+            margin-bottom: 30px;
+        }
+
+        .stats-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            color: #666;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #121212;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .distribution {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .dist-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .dist-label {
+            width: 15px;
+            font-size: 13px;
+            color: #666;
+            text-align: right;
+            margin-right: 8px;
+        }
+
+        .dist-bar {
+            height: 24px;
+            background: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            min-width: 20px;
+        }
+
+        .dist-bar.filled {
+            background: #6aaa64;
+            color: white;
+        }
+
+        .back-btn {
+            padding: 12px 32px;
+            background: #6aaa64;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .back-btn:hover {
+            background: #538d4e;
+        }
+
+        @media (max-width: 480px) {
+            .word-display {
+                font-size: 28px;
+                letter-spacing: 4px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="icon">😔</div>
+
+    <h1>Thanks for Playing!</h1>
+
+    <p class="word-reveal">The word was:</p>
+    <div class="word-display" id="correctWord">LOADING...</div>
+
+    <div class="stats-title">YOUR STATISTICS</div>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <span class="stat-value" id="played">0</span>
+            <span class="stat-label">Played</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="winRate">0</span>
+            <span class="stat-label">Win %</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="currentStreak">0</span>
+            <span class="stat-label">Current<br>Streak</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="maxStreak">0</span>
+            <span class="stat-label">Max<br>Streak</span>
+        </div>
+    </div>
+
+    <div class="stats-title">GUESS DISTRIBUTION</div>
+    <div class="distribution">
+        <div class="dist-row">
+            <span class="dist-label">1</span>
+            <div class="dist-bar" id="dist1">0</div>
+        </div>
+        <div class="dist-row">
+            <span class="dist-label">2</span>
+            <div class="dist-bar" id="dist2">0</div>
+        </div>
+        <div class="dist-row">
+            <span class="dist-label">3</span>
+            <div class="dist-bar" id="dist3">0</div>
+        </div>
+        <div class="dist-row">
+            <span class="dist-label">4</span>
+            <div class="dist-bar" id="dist4">0</div>
+        </div>
+        <div class="dist-row">
+            <span class="dist-label">5</span>
+            <div class="dist-bar" id="dist5">0</div>
+        </div>
+        <div class="dist-row">
+            <span class="dist-label">6</span>
+            <div class="dist-bar" id="dist6">0</div>
+        </div>
+    </div>
+
+    <a href="/game" class="back-btn">Try Again</a>
+</div>
+
+<script>
+    // Get the correct word from API
+    async function loadCorrectWord() {
+        try {
+            const response = await fetch('/api/reveal-word');
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('correctWord').textContent = data.word;
+            }
+        } catch (error) {
+            console.error('Error loading word:', error);
+            document.getElementById('correctWord').textContent = '?????';
+        }
+    }
+
+    // Load user stats
+    function loadStats() {
+        const username = localStorage.getItem('user');
+        if (!username) {
+            window.location.href = '/';
+            return;
+        }
+
+        const statsKey = 'wordleStats_' + username;
+        const stats = JSON.parse(localStorage.getItem(statsKey) || '{"played": 0, "won": 0, "currentStreak": 0, "maxStreak": 0, "distribution": [0,0,0,0,0,0]}');
+
+        // Update statistics on loss
+        stats.played++;
+        stats.currentStreak = 0; // Reset streak on loss
+
+        localStorage.setItem(statsKey, JSON.stringify(stats));
+
+        // Display stats
+        document.getElementById('played').textContent = stats.played;
+        const winRate = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) : 0;
+        document.getElementById('winRate').textContent = winRate;
+        document.getElementById('currentStreak').textContent = stats.currentStreak;
+        document.getElementById('maxStreak').textContent = stats.maxStreak;
+
+        // Update distribution
+        const maxDist = Math.max(...stats.distribution, 1);
+        stats.distribution.forEach((count, index) => {
+            const bar = document.getElementById('dist' + (index + 1));
+            if (bar) {
+                const percentage = maxDist > 0 ? (count / maxDist) * 100 : 0;
+                bar.style.width = Math.max(percentage, 7) + '%';
+                bar.textContent = count;
+
+                if (count > 0) {
+                    bar.classList.add('filled');
+                }
+            }
+        });
+    }
+
+    loadCorrectWord();
+    loadStats();
+</script>
+
+</body>
+</html>
