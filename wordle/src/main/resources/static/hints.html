@@ -330,9 +330,15 @@
         btn.disabled = true;
         btn.textContent = 'Revealing...';
 
+        // Priority: active game mode > last played mode > fallback to normal
+        const mode = localStorage.getItem('currentGameMode')
+                  || localStorage.getItem('lastPlayedMode')
+                  || 'normal';
+
+        console.log('Revealing word for mode:', mode);
+
         try {
-            // Fetch the actual word from the game
-            const response = await fetch('/api/reveal-word', {
+            const response = await fetch(`/api/reveal-word?mode=${mode}`, {
                 method: 'GET'
             });
 
@@ -340,21 +346,16 @@
                 const data = await response.json();
                 const word = data.word || 'WORDLE';
 
-                // Show the word
                 document.getElementById('wordDisplay').textContent = word;
-
                 document.getElementById('wordDefinition').textContent =
                     data.definition || 'A word used in the popular word-guessing game.';
-
                 document.getElementById('wordTrivia').textContent =
                     data.trivia || 'This word was carefully selected for today\'s puzzle!';
-
                 document.getElementById('wordExample').textContent =
                     data.example || `"Can you use ${word} in a sentence?"`;
 
                 document.getElementById('revealedWord').classList.add('show');
 
-                // Change button text but don't disable it permanently
                 btn.textContent = 'Revealed!';
                 setTimeout(() => {
                     btn.textContent = 'Reveal Again';
