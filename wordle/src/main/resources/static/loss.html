@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Over | Wordle</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: Arial, sans-serif;
@@ -22,149 +18,102 @@
             padding: 20px;
         }
 
-        .container {
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
+        .container { max-width: 500px; width: 100%; text-align: center; }
 
         .icon {
-            width: 60px;
-            height: 60px;
-            background: #787c7e;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 30px;
+            width: 60px; height: 60px; background: #787c7e;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; margin: 0 auto 20px; font-size: 30px;
         }
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 15px;
-            color: #121212;
-        }
+        h1 { font-size: 28px; margin-bottom: 12px; color: #121212; }
 
-        .word-reveal {
-            font-size: 18px;
-            margin-bottom: 10px;
-            color: #666;
-        }
+        .word-reveal { font-size: 16px; margin-bottom: 8px; color: #666; }
 
         .word-display {
-            font-size: 36px;
-            font-weight: bold;
-            letter-spacing: 8px;
-            color: #6aaa64;
-            margin-bottom: 30px;
+            font-size: 36px; font-weight: bold;
+            letter-spacing: 8px; color: #6aaa64; margin-bottom: 8px;
+        }
+
+        .mode-badge {
+            display: inline-block; background: #f0f0f0; color: #555;
+            font-size: 12px; padding: 3px 12px; border-radius: 20px; margin-bottom: 20px;
+        }
+
+        /* Mini board showing previous attempts */
+        .previous-board { margin: 0 auto 20px; display: inline-block; }
+
+        .prev-row {
+            display: flex; gap: 4px; margin-bottom: 4px; justify-content: center;
+        }
+
+        .prev-tile {
+            width: 42px; height: 42px; display: flex; align-items: center;
+            justify-content: center; font-size: 17px; font-weight: bold;
+            border-radius: 3px; border: 2px solid #d3d6da;
+            background: white; color: #121212;
+        }
+
+        .prev-tile.green  { background: #6aaa64; color: white; border-color: #6aaa64; }
+        .prev-tile.yellow { background: #c9b458; color: white; border-color: #c9b458; }
+        .prev-tile.gray   { background: #787c7e; color: white; border-color: #787c7e; }
+
+        .reset-info {
+            background: #fff8e1; border: 1px solid #ffe082;
+            border-radius: 8px; padding: 10px 16px;
+            margin-bottom: 22px; font-size: 13px; color: #795548;
         }
 
         .stats-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            color: #666;
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 12px; color: #666;
         }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 30px;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 10px; margin-bottom: 26px;
         }
 
-        .stat-item {
-            text-align: center;
-        }
+        .stat-item { text-align: center; }
 
         .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #121212;
-            display: block;
+            font-size: 30px; font-weight: bold; color: #121212; display: block;
         }
 
-        .stat-label {
-            font-size: 11px;
-            color: #666;
-            margin-top: 5px;
-        }
+        .stat-label { font-size: 11px; color: #666; margin-top: 4px; }
 
-        .distribution {
-            margin-top: 20px;
-            margin-bottom: 30px;
-        }
+        .distribution { margin-bottom: 28px; }
 
-        .dist-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 6px;
-        }
+        .dist-row { display: flex; align-items: center; margin-bottom: 5px; }
 
         .dist-label {
-            width: 15px;
-            font-size: 13px;
-            color: #666;
-            text-align: right;
-            margin-right: 8px;
+            width: 15px; font-size: 13px; color: #666;
+            text-align: right; margin-right: 8px; flex-shrink: 0;
         }
 
         .dist-bar {
-            height: 24px;
-            background: #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #666;
-            min-width: 20px;
+            height: 22px; background: #ccc; display: flex; align-items: center;
+            justify-content: flex-end; padding-right: 6px; font-size: 12px;
+            font-weight: bold; color: #666; min-width: 20px;
+            transition: width 0.6s ease;
         }
 
-        .dist-bar.filled {
-            background: #6aaa64;
-            color: white;
-        }
+        .dist-bar.filled { background: #6aaa64; color: white; }
 
         .back-btn {
-            padding: 12px 32px;
-            background: #6aaa64;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
+            padding: 13px 36px; background: #6aaa64; color: white;
+            border: none; border-radius: 6px; font-size: 15px;
+            font-weight: 600; cursor: pointer; text-decoration: none;
+            display: inline-block; margin-top: 8px;
         }
 
-        .back-btn:hover {
-            background: #538d4e;
-        }
+        .back-btn:hover { background: #538d4e; }
 
         @media (max-width: 480px) {
-            .word-display {
-                font-size: 28px;
-                letter-spacing: 4px;
-            }
-
-            .stat-value {
-                font-size: 28px;
-            }
-
-            .stat-label {
-                font-size: 10px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
+            .word-display { font-size: 28px; letter-spacing: 4px; }
+            .stat-value   { font-size: 26px; }
+            h1            { font-size: 22px; }
+            .prev-tile    { width: 36px; height: 36px; font-size: 14px; }
         }
     </style>
 </head>
@@ -172,11 +121,17 @@
 
 <div class="container">
     <div class="icon">😔</div>
-
     <h1>Thanks for Playing!</h1>
 
     <p class="word-reveal">The word was:</p>
-    <div class="word-display" id="correctWord">LOADING...</div>
+    <div class="word-display" id="correctWord">...</div>
+    <div class="mode-badge" id="modeBadge"></div>
+
+    <!-- Previous board attempts -->
+    <div class="previous-board" id="previousBoard"></div>
+
+    <!-- Time until reset -->
+    <div class="reset-info" id="resetInfo"></div>
 
     <div class="stats-title">YOUR STATISTICS</div>
     <div class="stats-grid">
@@ -200,43 +155,46 @@
 
     <div class="stats-title">GUESS DISTRIBUTION</div>
     <div class="distribution">
-        <div class="dist-row">
-            <span class="dist-label">1</span>
-            <div class="dist-bar" id="dist1">0</div>
-        </div>
-        <div class="dist-row">
-            <span class="dist-label">2</span>
-            <div class="dist-bar" id="dist2">0</div>
-        </div>
-        <div class="dist-row">
-            <span class="dist-label">3</span>
-            <div class="dist-bar" id="dist3">0</div>
-        </div>
-        <div class="dist-row">
-            <span class="dist-label">4</span>
-            <div class="dist-bar" id="dist4">0</div>
-        </div>
-        <div class="dist-row">
-            <span class="dist-label">5</span>
-            <div class="dist-bar" id="dist5">0</div>
-        </div>
-        <div class="dist-row">
-            <span class="dist-label">6</span>
-            <div class="dist-bar" id="dist6">0</div>
-        </div>
+        <div class="dist-row"><span class="dist-label">1</span><div class="dist-bar" id="dist1" style="width:7%">0</div></div>
+        <div class="dist-row"><span class="dist-label">2</span><div class="dist-bar" id="dist2" style="width:7%">0</div></div>
+        <div class="dist-row"><span class="dist-label">3</span><div class="dist-bar" id="dist3" style="width:7%">0</div></div>
+        <div class="dist-row"><span class="dist-label">4</span><div class="dist-bar" id="dist4" style="width:7%">0</div></div>
+        <div class="dist-row"><span class="dist-label">5</span><div class="dist-bar" id="dist5" style="width:7%">0</div></div>
+        <div class="dist-row"><span class="dist-label">6</span><div class="dist-bar" id="dist6" style="width:7%">0</div></div>
     </div>
 
-    <a href="/game" class="back-btn">Try Again</a>
+    <a href="/game" class="back-btn">← Back to Game</a>
 </div>
 
 <script>
-    // Get the correct word from API
+    // Get mode that was played — use lastPlayedMode (persists after clearGameState)
+    const mode = localStorage.getItem('lastPlayedMode') || 'normal';
+    const modeNames = { normal: 'Normal Mode', time: '60s Time Mode', sudden: 'Sudden Death' };
+
+    document.getElementById('modeBadge').textContent = modeNames[mode] || 'Normal Mode';
+
+    // Time until midnight reset
+    function getTimeUntilReset() {
+        const now = new Date();
+        const midnight = new Date(); midnight.setHours(24, 0, 0, 0);
+        const ms = midnight - now;
+        const h  = Math.floor(ms / (1000 * 60 * 60));
+        const m  = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+        return `${h}h ${m}m`;
+    }
+
+    document.getElementById('resetInfo').textContent =
+        `This mode resets in ${getTimeUntilReset()}. Come back then to play again!`;
+
+    // Fetch the correct word for the mode that was played
     async function loadCorrectWord() {
         try {
-            const response = await fetch('/api/reveal-word');
+            const response = await fetch(`/api/reveal-word?mode=${mode}`);
             if (response.ok) {
                 const data = await response.json();
-                document.getElementById('correctWord').textContent = data.word;
+                document.getElementById('correctWord').textContent = data.word || '?????';
+            } else {
+                document.getElementById('correctWord').textContent = '?????';
             }
         } catch (error) {
             console.error('Error loading word:', error);
@@ -244,47 +202,81 @@
         }
     }
 
-    // Load user stats
+    // Show the board from the completed game
+    function renderPreviousBoard() {
+        const savedState = localStorage.getItem('lossGameState');
+        if (!savedState) return;
+
+        try {
+            const gs = JSON.parse(savedState);
+            if (!gs.boardState) return;
+
+            const container = document.getElementById('previousBoard');
+            container.innerHTML = '';
+
+            gs.boardState.forEach(rowData => {
+                // Only show rows that have letters typed
+                const hasLetters = rowData.some(t => t.text && t.text.trim() !== '');
+                if (!hasLetters) return;
+
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'prev-row';
+
+                rowData.forEach(tileData => {
+                    const tile = document.createElement('div');
+                    tile.className = 'prev-tile';
+                    tile.textContent = tileData.text || '';
+
+                    if (tileData.classes && tileData.classes.includes('green'))
+                        tile.classList.add('green');
+                    else if (tileData.classes && tileData.classes.includes('yellow'))
+                        tile.classList.add('yellow');
+                    else if (tileData.classes && tileData.classes.includes('gray'))
+                        tile.classList.add('gray');
+
+                    rowDiv.appendChild(tile);
+                });
+
+                container.appendChild(rowDiv);
+            });
+        } catch (e) {
+            console.error('Error rendering board:', e);
+        }
+    }
+
+    // Load stats from localStorage (already updated by endGame in script.js)
     function loadStats() {
         const username = localStorage.getItem('user');
-        if (!username) {
-            window.location.href = '/';
-            return;
-        }
+        if (!username) { window.location.href = '/'; return; }
 
         const statsKey = 'wordleStats_' + username;
-        const stats = JSON.parse(localStorage.getItem(statsKey) || '{"played": 0, "won": 0, "currentStreak": 0, "maxStreak": 0, "distribution": [0,0,0,0,0,0]}');
+        const stats = JSON.parse(
+            localStorage.getItem(statsKey) ||
+            '{"played":0,"won":0,"currentStreak":0,"maxStreak":0,"distribution":[0,0,0,0,0,0]}'
+        );
 
-        // Update statistics on loss
-        stats.played++;
-        stats.currentStreak = 0; // Reset streak on loss
-
-        localStorage.setItem(statsKey, JSON.stringify(stats));
-
-        // Display stats
-        document.getElementById('played').textContent = stats.played;
-        const winRate = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) : 0;
+        document.getElementById('played').textContent = stats.played || 0;
+        const winRate = stats.played > 0
+            ? Math.round((stats.won / stats.played) * 100) : 0;
         document.getElementById('winRate').textContent = winRate;
-        document.getElementById('currentStreak').textContent = stats.currentStreak;
-        document.getElementById('maxStreak').textContent = stats.maxStreak;
+        document.getElementById('currentStreak').textContent = stats.currentStreak || 0;
+        document.getElementById('maxStreak').textContent = stats.maxStreak || 0;
 
-        // Update distribution
-        const maxDist = Math.max(...stats.distribution, 1);
-        stats.distribution.forEach((count, index) => {
+        const dist = stats.distribution || [0,0,0,0,0,0];
+        const maxDist = Math.max(...dist, 1);
+        dist.forEach((count, index) => {
             const bar = document.getElementById('dist' + (index + 1));
-            if (bar) {
-                const percentage = maxDist > 0 ? (count / maxDist) * 100 : 0;
-                bar.style.width = Math.max(percentage, 7) + '%';
-                bar.textContent = count;
-
-                if (count > 0) {
-                    bar.classList.add('filled');
-                }
-            }
+            if (!bar) return;
+            const pct = (count / maxDist) * 100;
+            bar.style.width = Math.max(pct, 7) + '%';
+            bar.textContent = count;
+            if (count > 0) bar.classList.add('filled');
+            else bar.classList.remove('filled');
         });
     }
 
     loadCorrectWord();
+    renderPreviousBoard();
     loadStats();
 </script>
 

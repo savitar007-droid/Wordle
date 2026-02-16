@@ -590,3 +590,18 @@ body {
     min-width: 200px;
   }
 }
+
+
+/* ============================================================
+   SUDDEN DEATH HINT SLIDE-UP ANIMATION
+   ============================================================ */
+@keyframes hintSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}

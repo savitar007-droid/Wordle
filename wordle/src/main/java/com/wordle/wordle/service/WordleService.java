@@ -18,7 +18,7 @@ public class WordleService {
             "ADIEU", "STARE", "BREAK", "PRIZE", "WORLD",
             "DRINK", "FLOAT", "GRAZE", "JOUST", "KNEEL",
             "LAPSE", "MANOR", "NERVE", "ONSET", "REALM",
-            "SPARK", "THRIVE", "ULTRA", "VAULT", "WRATH"
+            "SPARK", "THINK", "ULTRA", "VAULT", "WRATH"
     );
 
     private static final List<String> SUDDEN_WORDS = List.of(
