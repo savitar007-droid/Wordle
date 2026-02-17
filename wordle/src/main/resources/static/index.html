@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+
     <title>Wordle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="style.css">
     <style>
         /* Reset default margin */
@@ -10,49 +12,71 @@
         }
 
         /* Header Styles */
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
-            border-bottom: 1px solid #d3d6da;
-            background: white;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            width: 100%;
-            position: relative; /* For absolute positioning of center */
-        }
+        /* =========================
+   RESPONSIVE HEADER FIX
+========================= */
 
-        .header-left,
-        .header-right {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            min-width: 200px; /* Ensure space for buttons */
-        }
+.game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid #d3d6da;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+}
 
-        .header-left {
-            justify-content: flex-start;
-        }
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 
-        .header-right {
-            justify-content: flex-end;
-        }
+.header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
 
-        .header-center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+.header-center h1 {
+    display: none;
+}
 
-        .header-center h1 {
-            display: none; /* Hide text, show tiles instead */
-        }
+/* Logo sizing */
+.wordle-logo {
+    display: flex;
+    gap: 3px;
+}
 
+.logo-tile {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+}
+
+/* Desktop */
+@media (min-width: 600px) {
+
+    .game-header {
+        padding: 12px 20px;
+    }
+
+    .logo-tile {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .header-left,
+    .header-right {
+        gap: 8px;
+    }
+}
         /* Animated Wordle Logo */
         .wordle-logo {
             display: flex;
@@ -294,9 +318,6 @@
         </button>
     </div>
 
-    <div class="header-center">
-        <h1 style="display: none;">Wordle</h1> <!-- Hidden duplicate title -->
-    </div>
 
     <div class="header-center">
         <h1>Wordle</h1>
