@@ -19,7 +19,7 @@ The goal is to guess the correct word within a limited number of attempts, with 
 ## 🛠️ Tech Stack
 
 - **Language:** Java  
-- **Build Tool:** Maven  
+- **Build Tool:** SpringBoot 
 - **IDE:** IntelliJ IDEA / Eclipse  
 - **Version Control:** Git & GitHub  
 
