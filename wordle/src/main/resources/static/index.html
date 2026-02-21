@@ -6,6 +6,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Hint Banner */
+.hint-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    box-shadow: 0 -3px 10px rgba(0,0,0,0.2);
+    font-weight: 500;
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 500;
+}
+
+.hint-banner.visible {
+    display: block;
+}
+
+@media (max-width: 600px) {
+    .hint-banner {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
         /* Reset default margin */
         body h1:not(.header-center h1) {
             display: none; /* Hide only the duplicate h1 outside header */
@@ -475,30 +503,75 @@
 <div id="board"></div>
 <div id="keyboard"></div>
 <div id="toast"></div>
+<!-- Hint Banner -->
+<div id="hintBanner" class="hint-banner">
+    💡 Loading hint...
+</div>
+<script src="script.js" defer></script>
+<script>
+    <!-- Hint Banner -->
+<div id="hintBanner" class="hint-banner">
+    💡 Loading hint...
+</div>
 
 <script src="script.js" defer></script>
 <script>
+    // Load hint when game starts
+    async function loadHintForMode(mode) {
+        try {
+            const response = await fetch(`/api/hint?mode=${mode}`);
+            const data = await response.json();
+            const banner = document.getElementById('hintBanner');
+            if (banner) {
+                banner.textContent = data.hint;
+                banner.classList.add('visible');
+            }
+        } catch (error) {
+            console.error('Error loading hint:', error);
+            const banner = document.getElementById('hintBanner');
+            if (banner) {
+                banner.textContent = '💡 Guess the 5-letter word!';
+                banner.classList.add('visible');
+            }
+        }
+    }
+
+    // Wait for script.js to load, then wrap startGame
+    window.addEventListener('DOMContentLoaded', function() {
+        // Wait a bit for script.js defer to execute
+        setTimeout(function() {
+            // Store the original startGame function from script.js
+            const originalStartGame = window.startGame;
+
+            // Replace it with our wrapper
+            window.startGame = function(mode) {
+                // Load the hint first
+                loadHintForMode(mode);
+
+                // Then call the original startGame
+                if (originalStartGame) {
+                    originalStartGame(mode);
+                }
+            };
+        }, 100);
+    });
+
     // Menu functions
     function toggleMenu() {
         const modal = document.getElementById('menuModal');
         modal.classList.toggle('active');
-
-        // Update menu based on login status
         updateMenuItems();
     }
 
     function updateMenuItems() {
         const user = localStorage.getItem('user');
-
         if (user) {
-            // User is logged in
             document.getElementById('userInfoMenu').style.display = 'block';
             document.getElementById('menuUsername').textContent = user;
             document.getElementById('menuLogin').style.display = 'none';
             document.getElementById('menuStats').style.display = 'flex';
             document.getElementById('menuLogout').style.display = 'flex';
         } else {
-            // User is NOT logged in
             document.getElementById('userInfoMenu').style.display = 'none';
             document.getElementById('menuLogin').style.display = 'flex';
             document.getElementById('menuStats').style.display = 'none';
@@ -548,19 +621,17 @@
         }
     }
 
-    // Hint functionality - Navigate to hints page
     function goToHints() {
-        // Save current game state before leaving
         if (typeof saveGameState === 'function') {
             saveGameState();
         }
         window.location.href = '/hints';
     }
 
-    // Initialize menu on page load
     document.addEventListener('DOMContentLoaded', function() {
         updateMenuItems();
     });
+</script>
 </script>
 
 </body>

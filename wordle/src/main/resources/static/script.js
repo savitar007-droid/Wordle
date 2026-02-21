@@ -39,8 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     disableGameInput();
     updateModeButtons();
-    showDefaultBoardState();          // show last completed board so page isn't blank
-    setTimeout(() => openModeModal(), 400); // auto-open mode picker
+    showDefaultBoardState();
+    setTimeout(() => openModeModal(), 400);
   }
 
   document.addEventListener("keydown", onKey);
@@ -53,11 +53,7 @@ function getTodayString() {
   return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
 }
 
-/* ---------- SHOW DEFAULT BOARD (no active game) ----------
-   Renders the most recently completed board on the main board
-   so the page is never blank when there is no active game.
-   Priority: normal > time > sudden
----------------------------------------------------------- */
+/* ---------- SHOW DEFAULT BOARD (no active game) ---------- */
 function showDefaultBoardState() {
   const today = getTodayString();
   const priority = ['normal', 'time', 'sudden'];
@@ -69,7 +65,6 @@ function showDefaultBoardState() {
       const gs = JSON.parse(saved);
       if (!gs.boardState) continue;
 
-      // Paint tiles
       for (let r = 0; r < MAX_ATTEMPTS; r++)
         for (let c = 0; c < WORD_LENGTH; c++)
           if (gs.boardState[r] && gs.boardState[r][c]) {
@@ -77,15 +72,14 @@ function showDefaultBoardState() {
             board[r][c].className = gs.boardState[r][c].classes || "tile";
           }
 
-      // Paint keyboard keys
       if (gs.keyColors)
         Object.entries(gs.keyColors).forEach(([letter, color]) => {
           const el = document.getElementById("key-" + letter);
           if (el) { el.classList.remove("green","yellow","gray"); el.classList.add(color); }
         });
 
-      return; // stop after first found
-    } catch(e) { /* skip corrupt data */ }
+      return;
+    } catch(e) { }
   }
 }
 
@@ -147,62 +141,6 @@ function startGame(mode) {
 
   if (mode === "time") startTimer();
   else clearTimer();
-
-  // Show/hide hint for sudden death mode
-  if (mode === "sudden") {
-    showSuddenDeathHint();
-  } else {
-    removeSuddenDeathHint();
-  }
-}
-
-/* ---------- SUDDEN DEATH HINT ---------- */
-async function showSuddenDeathHint() {
-  // Remove any existing hint first
-  removeSuddenDeathHint();
-
-  // Fetch hint from the reveal-word endpoint
-  try {
-    const res = await fetch('/api/reveal-word?mode=sudden');
-    if (!res.ok) return;
-    const data = await res.json();
-    const hint = data.trivia || data.definition || '';
-    if (!hint) return;
-
-    const box = document.createElement('div');
-    box.id = 'sudden-hint-box';
-    box.innerHTML = `
-      <span style="font-size:18px;margin-right:6px;">💡</span>
-      <span><strong>Hint:</strong> ${hint}</span>
-    `;
-    box.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fff8e1;
-      border: 2px solid #f9a825;
-      border-radius: 10px;
-      padding: 12px 20px;
-      font-size: 13px;
-      color: #444;
-      max-width: min(92vw, 480px);
-      width: max-content;
-      z-index: 800;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.13);
-      line-height: 1.5;
-      text-align: center;
-      animation: hintSlideUp 0.4s ease;
-    `;
-    document.body.appendChild(box);
-  } catch(e) {
-    console.error('Could not load hint:', e);
-  }
-}
-
-function removeSuddenDeathHint() {
-  const existing = document.getElementById('sudden-hint-box');
-  if (existing) existing.remove();
 }
 
 /* ---------- ALREADY PLAYED POPUP ---------- */
@@ -218,7 +156,6 @@ function showAlreadyPlayedMessage(mode) {
   const existing = document.getElementById('already-played-msg');
   if (existing) existing.remove();
 
-  // Build mini board from saved completed state
   const savedState = localStorage.getItem(`completedBoard_${currentUser}_${mode}_${getTodayString()}`);
   let boardHTML = '';
   if (savedState) {
@@ -325,7 +262,6 @@ function resetGame() {
 
 /* ---------- TIMER ---------- */
 function startTimer() {
-  // Guard: if already played today, never restart the timer
   if (hasModeBeenPlayedToday('time')) {
     gameOver = true;
     disableGameInput();
@@ -341,7 +277,6 @@ function startTimer() {
     const elapsed = Math.floor((now - parseInt(savedStart)) / 1000);
     timeLeft = Math.max(0, 60 - elapsed);
     if (timeLeft <= 0) {
-      // Ran out while away on another page — mark played, show popup
       markModePlayedToday('time');
       saveCompletedBoard('time');
       clearGameState();
@@ -363,7 +298,6 @@ function startTimer() {
     updateTimer();
     localStorage.setItem('timeLeft', timeLeft.toString());
     if (timeLeft <= 0) {
-      // Mark played BEFORE endGame so returning to game page never restarts timer
       markModePlayedToday('time');
       saveCompletedBoard('time');
       endGame("⏰ Time's up!");
@@ -482,7 +416,6 @@ async function submit() {
   const result = (await res.json()).split("");
   let allGreen = true;
 
-  // ---- SMOOTH TWO-PHASE FLIP ANIMATION ----
   const animPromises = result.map((r, i) => new Promise(resolve => {
     const tile   = board[row][i];
     const letter = tile.innerText;
@@ -490,16 +423,13 @@ async function submit() {
     if (r !== "G") allGreen = false;
 
     setTimeout(() => {
-      // Phase 1: fold to edge (0 → 90deg), ease-in
       tile.style.transition = 'transform 0.22s ease-in';
       tile.style.transform  = 'rotateX(90deg)';
 
       setTimeout(() => {
-        // Apply color while invisible (edge-on)
         tile.classList.add(status);
         updateKeyColor(letter, status);
 
-        // Phase 2: unfold back (90 → 0deg), ease-out
         tile.style.transition = 'transform 0.22s ease-out';
         tile.style.transform  = 'rotateX(0deg)';
 
@@ -509,11 +439,11 @@ async function submit() {
           resolve();
         }, 230);
       }, 230);
-    }, i * 110); // stagger tiles
+    }, i * 110);
   }));
 
   await Promise.all(animPromises);
-  await new Promise(r => setTimeout(r, 120)); // settle pause
+  await new Promise(r => setTimeout(r, 120));
 
   const completedRow = row;
   row++;
@@ -554,7 +484,7 @@ async function submit() {
 /* ---------- SAVE COMPLETED BOARD ---------- */
 function saveCompletedBoard(mode) {
   const today    = getTodayString();
-  const snapshot = { boardState: [] };
+  const snapshot = { boardState: [], keyColors };
   for (let r = 0; r < MAX_ATTEMPTS; r++) {
     snapshot.boardState[r] = [];
     for (let c = 0; c < WORD_LENGTH; c++) {
@@ -568,7 +498,7 @@ function saveCompletedBoard(mode) {
   localStorage.setItem('lossGameState', JSON.stringify(snapshot));
 }
 
-/* ---------- WORD VALIDATION — 5 LETTERS ONLY ---------- */
+/* ---------- WORD VALIDATION ---------- */
 function isValidWord(word) {
   if (!word || word.length !== 5) return false;
   const validWords = [
@@ -634,7 +564,6 @@ function isValidWord(word) {
     "FLICK","GRIMY","HEIST","IRONY","JUICY","KINKY","LOWLY","MANLY","NATTY","OUTDO",
     "PANSY","RANDY","SEEDY","TACKY","UNIFY","VAPID","WITTY","YACHT","ZIPPY","CHESS"
   ];
-  // Extra safety: only return true for exactly 5-letter words
   return validWords.filter(w => w.length === 5).includes(word.toUpperCase());
 }
 
@@ -646,12 +575,11 @@ function showInvalidWord() {
   setTimeout(() => rowElement.classList.remove('shake'), 500);
 }
 
-/* ---------- HANDLE WIN — bounce animation like real Wordle ---------- */
+/* ---------- HANDLE WIN ---------- */
 function handleWin(attempts) {
   const winMessage = WIN_MESSAGES[attempts - 1];
   currentUser = localStorage.getItem('user');
 
-  // Bounce each tile on the winning row one by one
   const winRow = attempts - 1;
   for (let c = 0; c < WORD_LENGTH; c++) {
     const tile = board[winRow][c];
@@ -669,7 +597,6 @@ function handleWin(attempts) {
     }, c * 80);
   }
 
-  // Show toast after all tiles have bounced
   const totalBounceMs = WORD_LENGTH * 80 + 300;
   setTimeout(() => showToast("🎉 " + winMessage + " 🎉"), totalBounceMs);
 
@@ -765,14 +692,12 @@ async function endGame(msg) {
   gameOver = true;
   isSubmitting = false;
   clearTimer();
-  removeSuddenDeathHint();  // always clean up hint on game end
   disableGameInput();
 
   if (msg && msg.length > 0) {
     showToast(msg);
     const user = localStorage.getItem('user');
     if (user) {
-      // Update loss stats in localStorage
       const statsKey = 'wordleStats_' + user;
       let stats = JSON.parse(
         localStorage.getItem(statsKey) ||

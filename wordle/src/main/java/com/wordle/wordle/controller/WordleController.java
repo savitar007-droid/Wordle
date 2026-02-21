@@ -25,6 +25,7 @@ public class WordleController {
             return ResponseEntity.badRequest().build();
         }
 
+
         String guess = request.getGuess().trim().toUpperCase();
         String mode  = request.getMode() != null ? request.getMode() : "normal";
 
@@ -34,6 +35,15 @@ public class WordleController {
 
         char[] result = service.evaluateGuess(guess, mode);
         return ResponseEntity.ok(result);
+    }
+    // Add this method after the guess method
+    @GetMapping("/hint")
+    public ResponseEntity<Map<String, String>> getHint(
+            @RequestParam(defaultValue = "normal") String mode) {
+
+        Map<String, String> response = new HashMap<>();
+        response.put("hint", service.getHintForMode(mode));
+        return ResponseEntity.ok(response);
     }
 
     // reveal-word now accepts optional mode param
