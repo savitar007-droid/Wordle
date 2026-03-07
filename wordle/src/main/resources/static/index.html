@@ -504,17 +504,12 @@
 <div id="keyboard"></div>
 <div id="toast"></div>
 <!-- Hint Banner -->
-<div id="hintBanner" class="hint-banner">
-    💡 Loading hint...
-</div>
-<script src="script.js" defer></script>
-<script>
-    <!-- Hint Banner -->
+<!-- Hint Banner -->
 <div id="hintBanner" class="hint-banner">
     💡 Loading hint...
 </div>
 
-<script src="script.js" defer></script>
+<script src="script.js"></script>
 <script>
     // Load hint when game starts
     async function loadHintForMode(mode) {
@@ -536,24 +531,25 @@
         }
     }
 
-    // Wait for script.js to load, then wrap startGame
-    window.addEventListener('DOMContentLoaded', function() {
-        // Wait a bit for script.js defer to execute
+    // Wait for DOM and script.js to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Give script.js time to define startGame
         setTimeout(function() {
-            // Store the original startGame function from script.js
+            // Store reference to original startGame
             const originalStartGame = window.startGame;
 
-            // Replace it with our wrapper
-            window.startGame = function(mode) {
-                // Load the hint first
-                loadHintForMode(mode);
-
-                // Then call the original startGame
-                if (originalStartGame) {
-                    originalStartGame(mode);
-                }
-            };
-        }, 100);
+            if (originalStartGame) {
+                // Override startGame to also load hints
+                window.startGame = function(mode) {
+                    console.log('Loading hint for mode:', mode);
+                    loadHintForMode(mode);
+                    return originalStartGame.call(this, mode);
+                };
+                console.log('✓ startGame wrapped successfully');
+            } else {
+                console.error('✗ startGame function not found');
+            }
+        }, 200);
     });
 
     // Menu functions
@@ -631,7 +627,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         updateMenuItems();
     });
-</script>
 </script>
 
 </body>

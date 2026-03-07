@@ -1,13 +1,39 @@
 package com.wordle.wordle.service;
 
 import org.springframework.stereotype.Service;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class WordleService {
+
+    // Load all valid 5-letter words from file
+    private static final Set<String> VALID_WORDS = new HashSet<>();
+
+    static {
+        try {
+            InputStream is = WordleService.class.getResourceAsStream("/words.txt");
+            if (is != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String word = line.trim().toUpperCase();
+                    if (word.length() == 5) {
+                        VALID_WORDS.add(word);
+                    }
+                }
+                reader.close();
+                System.out.println("✓ Loaded " + VALID_WORDS.size() + " valid 5-letter words");
+            } else {
+                System.err.println("✗ words.txt not found in resources!");
+            }
+        } catch (Exception e) {
+            System.err.println("✗ Failed to load word list: " + e.getMessage());
+        }
+    }
 
     private static final List<String> NORMAL_WORDS = List.of(
             "CRANE", "SLATE", "TRAIN", "LIGHT", "STONE",
@@ -287,6 +313,12 @@ public class WordleService {
     public String getHintForMode(String mode) {
         String word = getWordForMode(mode);
         return WORD_HINTS.getOrDefault(word, "💡 Guess the 5-letter word!");
+    }
+
+    // NEW METHOD: Validate any 5-letter word against the dictionary
+    public boolean isValidWord(String word) {
+        if (word == null || word.length() != 5) return false;
+        return VALID_WORDS.contains(word.toUpperCase());
     }
 
     public char[] evaluateGuess(String guess, String mode) {

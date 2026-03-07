@@ -117,6 +117,32 @@ function checkLoginStatus() {
   if (currentUser) console.log('User logged in:', currentUser);
 }
 
+/* ---------- LOAD HINT FOR MODE ---------- */
+async function loadHintForMode(mode) {
+  try {
+    console.log('Fetching hint for mode:', mode);
+    const response = await fetch(`/api/hint?mode=${mode}`);
+    const data = await response.json();
+    console.log('Hint received:', data);
+
+    const banner = document.getElementById('hintBanner');
+    if (banner) {
+      banner.textContent = data.hint;
+      banner.classList.add('visible');
+      console.log('✓ Hint banner updated:', data.hint);
+    } else {
+      console.error('✗ Hint banner element not found!');
+    }
+  } catch (error) {
+    console.error('Error loading hint:', error);
+    const banner = document.getElementById('hintBanner');
+    if (banner) {
+      banner.textContent = '💡 Guess the 5-letter word!';
+      banner.classList.add('visible');
+    }
+  }
+}
+
 /* ---------- MODE CONTROL ---------- */
 function startGame(mode) {
   const isResuming = localStorage.getItem('gameInProgress') === 'true'
@@ -138,6 +164,9 @@ function startGame(mode) {
 
   document.getElementById("mode-modal").style.display = "none";
   enableGameInput();
+
+  // LOAD THE HINT FOR THIS MODE
+  loadHintForMode(mode);
 
   if (mode === "time") startTimer();
   else clearTimer();
@@ -392,6 +421,21 @@ function back() {
   if (col > 0) { col--; board[row][col].innerText = ""; }
 }
 
+/* ---------- WORD VALIDATION - NOW ASYNC WITH BACKEND ---------- */
+async function isValidWord(word) {
+  if (!word || word.length !== 5) return false;
+
+  try {
+    const response = await fetch(`/api/validate-word?word=${encodeURIComponent(word.toUpperCase())}`);
+    const data = await response.json();
+    return data.valid;
+  } catch (error) {
+    console.error('Word validation error:', error);
+    // Fallback to basic check if API fails
+    return /^[A-Z]{5}$/i.test(word);
+  }
+}
+
 /* ---------- SUBMIT ---------- */
 async function submit() {
   if (col !== WORD_LENGTH || isSubmitting) return;
@@ -399,7 +443,9 @@ async function submit() {
 
   const guess = board[row].map(t => t.innerText).join("");
 
-  if (!isValidWord(guess)) {
+  // AWAIT the async validation
+  const valid = await isValidWord(guess);
+  if (!valid) {
     showInvalidWord();
     isSubmitting = false;
     return;
@@ -496,85 +542,6 @@ function saveCompletedBoard(mode) {
   }
   localStorage.setItem(`completedBoard_${currentUser}_${mode}_${today}`, JSON.stringify(snapshot));
   localStorage.setItem('lossGameState', JSON.stringify(snapshot));
-}
-
-/* ---------- WORD VALIDATION ---------- */
-function isValidWord(word) {
-  if (!word || word.length !== 5) return false;
-  const validWords = [
-    "HELLO","WORLD","CRANE","SLATE","ADIEU","STARE","TRAIN","BREAK","LIGHT","PRIZE",
-    "ABOUT","ABOVE","ACTOR","ACUTE","ADMIT","ADOPT","ADULT","AFTER","AGAIN","AGENT",
-    "AGREE","AHEAD","ALARM","ALBUM","ALERT","ALIGN","ALIKE","ALIVE","ALLOW","ALONE",
-    "ALONG","ALTER","AMBER","AMEND","ANGEL","ANGER","ANGLE","ANGRY","APART","APPLE",
-    "APPLY","ARENA","ARGUE","ARISE","ARRAY","ARROW","ASIDE","ASSET","AUDIO","AUDIT",
-    "AVOID","AWARD","AWARE","BADLY","BAKER","BASES","BASIC","BASIN","BASIS","BEACH",
-    "BEGAN","BEGIN","BEGUN","BEING","BELOW","BENCH","BIRTH","BLACK","BLADE","BLAME",
-    "BLANK","BLAST","BLEED","BLESS","BLIND","BLOCK","BLOOD","BLOOM","BLOWN","BLUES",
-    "BOARD","BOOST","BOOTH","BOUND","BRAIN","BRAND","BRASS","BRAVE","BREAD","BREED",
-    "BRIEF","BRING","BROAD","BROKE","BROWN","BUILD","BUILT","BUYER","CABLE","CARRY",
-    "CATCH","CAUSE","CHAIN","CHAIR","CHAOS","CHARM","CHART","CHASE","CHEAP","CHECK",
-    "CHESS","CHEST","CHIEF","CHILD","CHINA","CHOSE","CIVIL","CLAIM","CLASS","CLEAN",
-    "CLEAR","CLICK","CLIFF","CLIMB","CLOCK","CLOSE","CLOTH","CLOUD","COACH","COAST",
-    "COULD","COUNT","COURT","COVER","CRACK","CRAFT","CRASH","CRAZY","CREAM","CRIME",
-    "CROSS","CROWD","CROWN","CRUDE","CURVE","CYCLE","DAILY","DANCE","DATED","DEALT",
-    "DEATH","DEBUT","DELAY","DELTA","DENSE","DEPOT","DEPTH","DOING","DOUBT","DOZEN",
-    "DRAFT","DRAMA","DRANK","DRAWN","DREAM","DRESS","DRILL","DRINK","DRIVE","DROVE",
-    "DYING","EAGER","EARLY","EARTH","EIGHT","ELITE","EMPTY","ENEMY","ENJOY","ENTER",
-    "ENTRY","EQUAL","ERROR","EVENT","EVERY","EXACT","EXIST","EXTRA","FAITH","FALSE",
-    "FAULT","FIBER","FIELD","FIFTH","FIFTY","FIGHT","FINAL","FIRST","FIXED","FLASH",
-    "FLEET","FLOOR","FLUID","FOCUS","FORCE","FORTH","FORTY","FORUM","FOUND","FRAME",
-    "FRANK","FRAUD","FRESH","FRONT","FRUIT","FULLY","FUNNY","GIANT","GIVEN","GLASS",
-    "GLOBE","GOING","GRACE","GRADE","GRAND","GRANT","GRASS","GRAVE","GREAT","GREEN",
-    "GROSS","GROUP","GROWN","GUARD","GUESS","GUEST","GUIDE","HAPPY","HEART","HEAVY",
-    "HENCE","HORSE","HOTEL","HOUSE","HUMAN","IDEAL","IMAGE","INDEX","INNER","INPUT",
-    "ISSUE","JOINT","JUDGE","KNOWN","LABEL","LARGE","LASER","LATER","LAUGH","LAYER",
-    "LEARN","LEASE","LEAST","LEAVE","LEGAL","LEMON","LEVEL","LIGHT","LIMIT","LINKS",
-    "LIVES","LOCAL","LOGIC","LOOSE","LOWER","LUCKY","LUNCH","LYING","MAGIC","MAJOR",
-    "MAKER","MARCH","MATCH","MAYBE","MAYOR","MEANT","MEDIA","METAL","MIGHT","MINOR",
-    "MINUS","MIXED","MODEL","MONEY","MONTH","MORAL","MOTOR","MOUNT","MOUSE","MOUTH",
-    "MOVIE","MUSIC","NEEDS","NEVER","NEWLY","NIGHT","NOISE","NORTH","NOTED","NOVEL",
-    "NURSE","OCCUR","OCEAN","OFFER","OFTEN","ORDER","OTHER","OUGHT","PAINT","PANEL",
-    "PAPER","PARTY","PEACE","PHASE","PHONE","PHOTO","PIECE","PILOT","PITCH","PLACE",
-    "PLAIN","PLANE","PLANT","PLATE","POINT","POUND","POWER","PRESS","PRICE","PRIDE",
-    "PRIME","PRINT","PRIOR","PROOF","PROUD","PROVE","QUEEN","QUICK","QUIET","QUITE",
-    "RADIO","RAISE","RANGE","RAPID","RATIO","REACH","READY","REFER","RIGHT","RIVAL",
-    "RIVER","ROMAN","ROUGH","ROUND","ROUTE","ROYAL","RURAL","SCALE","SCENE","SCOPE",
-    "SCORE","SENSE","SERVE","SEVEN","SHALL","SHAPE","SHARE","SHARP","SHEET","SHELF",
-    "SHELL","SHIFT","SHINE","SHIRT","SHOCK","SHOOT","SHORT","SHOWN","SIGHT","SINCE",
-    "SIXTH","SIZED","SKILL","SLEEP","SLIDE","SMALL","SMART","SMILE","SMITH","SMOKE",
-    "SOLID","SOLVE","SORRY","SOUND","SOUTH","SPACE","SPARE","SPEAK","SPEED","SPEND",
-    "SPENT","SPLIT","SPOKE","SPORT","STAFF","STAGE","STAKE","STAND","START","STATE",
-    "STEAM","STEEL","STICK","STILL","STOCK","STONE","STOOD","STORE","STORM","STORY",
-    "STRIP","STUCK","STUDY","STUFF","STYLE","SUGAR","SUITE","SUPER","SWEET","TABLE",
-    "TAKEN","TASTE","TAXES","TEACH","THANK","THEFT","THEIR","THEME","THERE","THESE",
-    "THICK","THING","THINK","THIRD","THOSE","THREE","THREW","THROW","TIGHT","TIMES",
-    "TITLE","TODAY","TOPIC","TOTAL","TOUCH","TOUGH","TOWER","TRACK","TRADE","TREND",
-    "TRIAL","TRIBE","TRICK","TRIED","TROOP","TRUCK","TRULY","TRUNK","TRUST","TRUTH",
-    "TWICE","UNDER","UNDUE","UNION","UNITY","UNTIL","UPPER","UPSET","URBAN","USAGE",
-    "USUAL","VALID","VALUE","VIDEO","VIRUS","VISIT","VITAL","VOCAL","VOICE","WASTE",
-    "WATCH","WATER","WHEEL","WHERE","WHICH","WHILE","WHITE","WHOLE","WHOSE","WOMAN",
-    "WOMEN","WORTH","WOULD","WOUND","WRITE","WRONG","WROTE","YIELD","YOUNG","YOURS",
-    "YOUTH","PLUMB","GRIEF","STAMP","BLAZE","GLINT","HOVER","FLOAT","GRAZE","HINGE",
-    "JOUST","KNEEL","LAPSE","MANOR","NERVE","ONSET","FROST","GLOOM","HARSH","JOKER",
-    "KNACK","LIVER","MIXER","NOBLE","ORBIT","QUIRK","CLOTH","DRAFT","FRAME","REALM",
-    "SPARK","SALVO","TIMID","VENOM","WALTZ","PATSY","BRAVE","DRINK","CHEST","FIELD",
-    "GLOBE","RISKY","TEMPO","BLUNT","CRISP","DIMLY","EQUIP","FARCE","GAVEL","HAVEN",
-    "INFER","KNAVE","LAPEL","MIRTH","NOTCH","OPTIC","PERCH","QUALM","RASPY","SAVVY",
-    "TABBY","VIGIL","WHELP","YEARN","ZESTY","ARTSY","BUTCH","CAMEL","DAISY","ENACT",
-    "FLICK","GRIMY","HEIST","IRONY","JUICY","KINKY","LOWLY","MANLY","NATTY","OUTDO",
-    "PANSY","RANDY","SEEDY","TACKY","UNIFY","VAPID","WITTY","YACHT","ZIPPY","CHESS",
-    "ABIDE","ABODE","ACORN","ADORE","AFFIX","AGILE","ALLOY","AMONG","ANVIL","APRIL",
-    "BATCH","BERRY","BISON","BROOM","BRISK","CANDY","CANOE","CEDAR","CHILI","CIDER",
-    "CIVIC","CORAL","CREEK","CREPT","DAIRY","DECAY","DODGE","DONOR","DUSTY","EPOCH",
-    "FAINT","FAIRY","FANCY","FERRY","FLARE","FLUTE","FOLLY","FORGE","FROZE","GAMER",
-    "GHOST","GLIDE","GRAIN","GRIND","GROVE","HASTE","HAZEL","HIKER","HONEY","HUMOR",
-    "IVORY","JELLY","JOLLY","KARMA","KAYAK","KNOCK","LATCH","LILAC","LODGE","LORRY",
-    "MAPLE","MERCY","MOSSY","NAVAL","OASIS","OLIVE","OPERA","OTTER","PADDY","PEARL",
-    "PENNY","POUCH","REBEL","RIDER","RIPEN","ROAST","ROGUE","RUSTY","SAUCE","SCARF",
-    "SHORE","SHOUT","SLOPE","SNAKE","SOLAR","SONAR","SPICE","STACK","SWING","THORN",
-    "TIGER","TOAST","TULIP","ULTRA","VIXEN","WAGON","WISER","WOVEN","ZONAL","ZEBRA"
-  ];
-  return validWords.filter(w => w.length === 5).includes(word.toUpperCase());
 }
 
 /* ---------- SHOW INVALID WORD ---------- */

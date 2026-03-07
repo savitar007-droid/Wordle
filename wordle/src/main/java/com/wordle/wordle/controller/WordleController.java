@@ -25,7 +25,6 @@ public class WordleController {
             return ResponseEntity.badRequest().build();
         }
 
-
         String guess = request.getGuess().trim().toUpperCase();
         String mode  = request.getMode() != null ? request.getMode() : "normal";
 
@@ -36,7 +35,7 @@ public class WordleController {
         char[] result = service.evaluateGuess(guess, mode);
         return ResponseEntity.ok(result);
     }
-    // Add this method after the guess method
+
     @GetMapping("/hint")
     public ResponseEntity<Map<String, String>> getHint(
             @RequestParam(defaultValue = "normal") String mode) {
@@ -46,7 +45,13 @@ public class WordleController {
         return ResponseEntity.ok(response);
     }
 
-    // reveal-word now accepts optional mode param
+    @GetMapping("/validate-word")
+    public ResponseEntity<Map<String, Boolean>> validateWord(@RequestParam String word) {
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("valid", service.isValidWord(word));
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/reveal-word")
     public ResponseEntity<Map<String, String>> revealWord(
             @RequestParam(defaultValue = "normal") String mode) {
@@ -74,7 +79,6 @@ public class WordleController {
         d.put("PRIZE", "A reward given to the winner of a competition.");
         d.put("BREAK", "To separate into pieces as a result of a blow or strain.");
         d.put("LIGHT", "The natural agent that stimulates sight and makes things visible.");
-        d.put("CRANE", "A large, tall machine used for moving heavy objects by suspending them.");
         d.put("BRAVE", "Ready to face and endure danger or pain; showing courage.");
         d.put("FROST", "A deposit of small white ice crystals formed on a cold surface.");
         d.put("GLOOM", "Darkness or dimness; a state of depression or despondency.");
